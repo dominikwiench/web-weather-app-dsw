@@ -1,7 +1,13 @@
 import React from 'react';
 import { WiDaySunny } from 'react-icons/wi';
+import type { Unit } from '../types';
+import { setUnit } from '../store/weatherSlice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 
 const Header: React.FC = () => {
+	const dispatch = useAppDispatch();
+	const currentUnit = useAppSelector((state) => state.weather.unit);
+
 	return (
 		<header className="bg-blue-700 text-white p-4 shadow-lg sticky top-0 z-50">
 			<div className="container mx-auto flex justify-between items-center">
@@ -19,8 +25,20 @@ const Header: React.FC = () => {
 					</button>
 				</nav>
 
-				<div className="bg-blue-700 px-3 py-1 rounded text-sm font-mono cursor-pointer hover:bg-blue-800 transition">
-					°C | °F | °K
+				<div className="flex bg-blue-800 rounded-lg overflow-hidden border border-blue-500">
+					{(['C', 'F', 'K'] as Unit[]).map((unit) => (
+						<button
+							key={unit}
+							onClick={() => dispatch(setUnit(unit))}
+							className={`px-3 py-1 text-sm font-bold transition-colors ${
+								currentUnit === unit
+									? 'bg-yellow-400 text-blue-900'
+									: 'text-blue-200 hover:bg-blue-700'
+							}`}
+						>
+							°{unit}
+						</button>
+					))}
 				</div>
 			</div>
 		</header>

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import CityCard from '../components/CityCard';
 import { mockCities } from '../data/mockData';
 import type { City } from '../types';
+import { useAppSelector } from '../store/hooks';
+import { convertTemp } from '../utils/tempConverter';
 
 const Home: React.FC = () => {
 	const [cities] = useState<City[]>(mockCities);
@@ -11,6 +13,9 @@ const Home: React.FC = () => {
 	const filteredCities = cities.filter((city) =>
 		city.name.toLowerCase().includes(searchTerm.toLowerCase())
 	);
+
+	// pobranie stanu z redux
+	const unit = useAppSelector((state) => state.weather.unit);
 
 	return (
 		<div className="container mx-auto p-4 md:p-8">
@@ -34,7 +39,7 @@ const Home: React.FC = () => {
 						<Link to={`/city/${city.id}`} key={city.id} className="block">
 							<CityCard
 								name={city.name}
-								temp={city.temp}
+								temp={convertTemp(city.temp, unit)}
 								condition={city.condition}
 								isFavorite={city.isFavorite}
 							/>

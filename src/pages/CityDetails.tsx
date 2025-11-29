@@ -10,6 +10,9 @@ import {
 } from 'react-icons/wi';
 import { BiArrowBack } from 'react-icons/bi';
 
+import { useAppSelector } from '../store/hooks';
+import { convertTemp } from '../utils/tempConverter';
+
 type ViewState = 'today' | 'forecast';
 type ViewAction = { type: 'SHOW_TODAY' } | { type: 'SHOW_FORECAST' };
 
@@ -27,6 +30,9 @@ const viewReducer = (state: ViewState, action: ViewAction): ViewState => {
 const CityDetails: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
+
+	// pobranie stanu z redux
+	const unit = useAppSelector((state) => state.weather.unit);
 
 	const cityName =
 		mockCities.find((c) => c.id === Number(id))?.name || 'Nieznane miasto';
@@ -52,7 +58,7 @@ const CityDetails: React.FC = () => {
 						{current.condition}
 					</p>
 					<div className="text-6xl font-bold my-4">
-						{Math.round(current.temp)}°
+						{Math.round(convertTemp(current.temp, unit))}°{unit}
 					</div>
 				</div>
 
@@ -127,7 +133,7 @@ const CityDetails: React.FC = () => {
 										</span>
 									</div>
 									<span className="font-bold text-lg">
-										{Math.round(day.temp)}°
+										{Math.round(convertTemp(day.temp, unit))}°{unit}
 									</span>
 								</div>
 							))}
