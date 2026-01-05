@@ -15,6 +15,7 @@ interface CityCardProps {
 	temp: number;
 	condition: string;
 	isFavorite: boolean;
+	onToggleFavorite?: (e: React.MouseEvent) => void;
 }
 
 const getWeatherIcon = (condition: string) => {
@@ -41,6 +42,7 @@ const CityCard: React.FC<CityCardProps> = ({
 	temp,
 	condition,
 	isFavorite,
+	onToggleFavorite,
 }) => {
 	return (
 		<div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition-all duration-200 flex justify-between items-center border border-slate-100">
@@ -61,6 +63,7 @@ const CityCard: React.FC<CityCardProps> = ({
 				</div>
 
 				<button
+					onClick={onToggleFavorite}
 					className="text-yellow-400 text-2xl hover:scale-125 transition-transform p-2 focus:outline-none"
 					aria-label={isFavorite ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
 				>

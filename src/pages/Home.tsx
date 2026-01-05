@@ -5,6 +5,8 @@ import { mockCities } from '../data/mockData';
 import type { City } from '../types';
 import { useAppSelector } from '../store/hooks';
 import { convertTemp } from '../utils/tempConverter';
+import { useAppDispatch } from '../store/hooks';
+import { toggleFavorite } from '../store/weatherSlice';
 
 const Home: React.FC = () => {
 	const [cities] = useState<City[]>(mockCities);
@@ -15,6 +17,8 @@ const Home: React.FC = () => {
 	);
 
 	// pobranie stanu z redux
+	const dispatch = useAppDispatch();
+	const favorites = useAppSelector((state) => state.weather.favorites);
 	const unit = useAppSelector((state) => state.weather.unit);
 
 	return (
@@ -34,17 +38,30 @@ const Home: React.FC = () => {
 					Dzisiejsza pogoda
 				</h2>
 
-				<div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
-					{filteredCities.map((city) => (
-						<Link to={`/city/${city.id}`} key={city.id} className="block">
-							<CityCard
-								name={city.name}
-								temp={convertTemp(city.temp, unit)}
-								condition={city.condition}
-								isFavorite={city.isFavorite}
-							/>
-						</Link>
-					))}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{filteredCities.map((city) => {
+						const isFav = favorites.includes(city.id);
+						const displayTemp = convertTemp(city.temp, unit);
+
+						return (
+							<Link
+								to={`/city/${city.id}`}
+								key={city.id}
+								className="block group"
+							>
+								<CityCard
+									name={city.name}
+									temp={displayTemp}
+									condition={city.condition}
+									isFavorite={isFav}
+									onToggleFavorite={(e) => {
+										e.preventDefault();
+										dispatch(toggleFavorite(city.id));
+									}}
+								/>
+							</Link>
+						);
+					})}
 				</div>
 			</section>
 		</div>

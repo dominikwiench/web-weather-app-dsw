@@ -7,6 +7,11 @@ const store = configureStore({
 	},
 });
 
+store.subscribe(() => {
+	const state = store.getState().weather;
+	localStorage.setItem('weather-app-config', JSON.stringify(state));
+});
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
