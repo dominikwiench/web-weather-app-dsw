@@ -12,23 +12,18 @@ const Home: React.FC = () => {
 
 	// pobranie stanu z redux
 	const dispatch = useAppDispatch();
-	const { cityList, favorites, unit, error } = useAppSelector(
+	const { cityList, favorites, unit, error, savedCityNames } = useAppSelector(
 		(state) => state.weather
 	);
 
 	// lista miast na start
 	useEffect(() => {
-		if (cityList.length === 0) {
-			const defaultCities = [
-				'Warszawa',
-				'Kraków',
-				'Wrocław',
-				'Gdańsk',
-				'Poznań',
-			];
-			defaultCities.forEach((city) => dispatch(fetchWeatherByCity(city)));
+		if (cityList.length === 0 && savedCityNames.length > 0) {
+			savedCityNames.forEach((city) => {
+				if (city) dispatch(fetchWeatherByCity(city));
+			});
 		}
-	}, [dispatch, cityList.length]);
+	}, [dispatch, cityList.length, savedCityNames]);
 
 	// wyszukiwanie miast
 	const handleSearch = (e: React.FormEvent) => {

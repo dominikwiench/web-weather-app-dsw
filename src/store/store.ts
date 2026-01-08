@@ -9,7 +9,12 @@ const store = configureStore({
 
 store.subscribe(() => {
 	const state = store.getState().weather;
-	localStorage.setItem('weather-app-config', JSON.stringify(state));
+	const configToSave = {
+		unit: state.unit,
+		favorites: state.favorites,
+		savedCityNames: state.savedCityNames,
+	};
+	localStorage.setItem('weather-app-settings', JSON.stringify(configToSave));
 });
 
 export type RootState = ReturnType<typeof store.getState>;
