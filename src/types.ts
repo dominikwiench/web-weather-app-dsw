@@ -43,3 +43,35 @@ export interface WeatherData {
 export interface WeatherError {
 	message: string;
 }
+
+export interface ForecastItem {
+	dt: number;
+	dt_txt: string;
+	main: {
+		temp: number;
+		feels_like: number;
+		pressure: number;
+		humidity: number;
+	};
+	weather: {
+		description: string;
+		icon: string;
+	}[];
+	clouds: {
+		all: number;
+	};
+	wind: {
+		speed: number;
+		deg: number;
+	};
+	pop: number;
+	rain?: {
+		'3h': number;
+	};
+}
+
+export interface CityDetailsData {
+	name: string;
+	current: ForecastItem;
+	list: ForecastItem[];
+}

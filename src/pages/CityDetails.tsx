@@ -1,17 +1,18 @@
-import React, { useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockForecast, mockCities } from '../data/mockData';
 import {
 	WiStrongWind,
 	WiHumidity,
 	WiBarometer,
 	WiRaindrop,
 	WiCloudy,
+	WiSandstorm,
 } from 'react-icons/wi';
-import { BiArrowBack } from 'react-icons/bi';
+import { BiArrowBack, BiLoaderAlt } from 'react-icons/bi';
 
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { convertTemp } from '../utils/tempConverter';
+import { fetchForecast } from '../store/weatherSlice';
 
 type ViewState = 'today' | 'forecast';
 type ViewAction = { type: 'SHOW_TODAY' } | { type: 'SHOW_FORECAST' };
@@ -30,20 +31,52 @@ const viewReducer = (state: ViewState, action: ViewAction): ViewState => {
 const CityDetails: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
 
 	// pobranie stanu z redux
-	const unit = useAppSelector((state) => state.weather.unit);
+	const { currentCityDetails, status, unit, error } = useAppSelector(
+		(state) => state.weather
+	);
 
-	const cityName =
-		mockCities.find((c) => c.id === Number(id))?.name || 'Nieznane miasto';
+	const [viewMode, dispatchView] = useReducer(viewReducer, 'today');
 
-	const [viewMode, dispatch] = useReducer(viewReducer, 'today');
+	// pobierz dane danego miasta przy wejściu na stronę
+	useEffect(() => {
+		if (id) {
+			dispatch(fetchForecast(id));
+		}
+	}, [dispatch, id]);
 
-	const current = mockForecast.current;
-	const daily = mockForecast.daily;
+	if (status === 'loading' || !currentCityDetails) {
+		return (
+			<div className="flex justify-center items-center h-screen bg-blue-50">
+				<BiLoaderAlt className="animate-spin text-blue-500" size={60} />
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="container mx-auto p-8 text-center">
+				<h2 className="text-2xl text-red-600 mb-4">Wystąpił błąd</h2>
+				<p>{error}</p>
+				<button
+					onClick={() => navigate('/')}
+					className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+				>
+					Wróć do strony głównej
+				</button>
+			</div>
+		);
+	}
+
+	const current = currentCityDetails.current;
+	const daily = currentCityDetails.list.filter((item) =>
+		item.dt_txt.includes('12:00:00')
+	);
 
 	return (
-		<div className="container mx-auto p-4 max-w-4xl">
+		<div className="container mx-auto p-4 max-w-4xl min-h-screen">
 			<button
 				onClick={() => navigate('/')}
 				className="flex items-center gap-2 text-slate-600 mb-6 hover:text-blue-600 transition"
@@ -53,18 +86,22 @@ const CityDetails: React.FC = () => {
 
 			<div className="bg-white rounded-3xl shadow-xl overflow-hidden">
 				<div className="bg-blue-600 p-8 text-white text-center">
-					<h1 className="text-4xl font-bold mb-2">{cityName}</h1>
+					<h1 className="text-4xl font-bold mb-2">{currentCityDetails.name}</h1>
 					<p className="text-blue-100 text-lg capitalize">
-						{current.condition}
+						{current.weather[0].description}
 					</p>
 					<div className="text-6xl font-bold my-4">
-						{Math.round(convertTemp(current.temp, unit))}°{unit}
+						{Math.round(convertTemp(current.main.temp, unit))}°{unit}
 					</div>
+					<p className="text-sm opacity-80">
+						Odczuwalna: {Math.round(convertTemp(current.main.feels_like, unit))}
+						°{unit}
+					</p>
 				</div>
 
 				<div className="flex border-b border-slate-100">
 					<button
-						onClick={() => dispatch({ type: 'SHOW_TODAY' })}
+						onClick={() => dispatchView({ type: 'SHOW_TODAY' })}
 						className={`flex-1 p-4 font-semibold transition ${
 							viewMode === 'today'
 								? 'text-blue-600 border-b-2 border-blue-600'
@@ -74,7 +111,7 @@ const CityDetails: React.FC = () => {
 						Szczegóły dzisiaj
 					</button>
 					<button
-						onClick={() => dispatch({ type: 'SHOW_FORECAST' })}
+						onClick={() => dispatchView({ type: 'SHOW_FORECAST' })}
 						className={`flex-1 p-4 font-semibold transition ${
 							viewMode === 'forecast'
 								? 'text-blue-600 border-b-2 border-blue-600'
@@ -85,58 +122,72 @@ const CityDetails: React.FC = () => {
 					</button>
 				</div>
 
-				<div className="p-8">
+				<div className="p-4 sm:p-8">
 					{viewMode === 'today' ? (
-						<div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+						<div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
 							<DetailItem
 								icon={<WiStrongWind size={40} />}
 								label="Wiatr"
-								value={`${current.windSpeed} km/h ${current.windDir}`}
+								value={`${current.wind.speed} m/s`}
 							/>
 							<DetailItem
 								icon={<WiHumidity size={40} />}
 								label="Wilgotność"
-								value={`${current.humidity}%`}
+								value={`${current.main.humidity}%`}
 							/>
 							<DetailItem
 								icon={<WiBarometer size={40} />}
 								label="Ciśnienie"
-								value={`${current.pressure} hPa`}
+								value={`${current.main.pressure} hPa`}
 							/>
 							<DetailItem
 								icon={<WiRaindrop size={40} />}
-								label="Opady"
-								value={`${current.precipitation} mm`}
+								label="Opady (3h)"
+								value={`${current.rain?.['3h'] || 0} mm`}
 							/>
 							<DetailItem
 								icon={<WiCloudy size={40} />}
 								label="Zachmurzenie"
-								value={`${current.clouds}%`}
+								value={`${current.clouds.all}%`}
 							/>
 							<DetailItem
-								icon={<WiRaindrop size={40} className="text-blue-400" />}
-								label="Szansa opadów"
-								value="30%" //to-do: zmienic na rzeczywista wartosc z API
+								icon={<WiSandstorm size={40} className="text-blue-400" />}
+								label="Szansa na opady"
+								value={`${Math.round(current.pop * 100)}%`}
 							/>
 						</div>
 					) : (
 						<div className="space-y-4">
-							{daily.map((day, index) => (
-								<div
-									key={index}
-									className="flex justify-between items-center p-4 bg-slate-50 rounded-lg hover:bg-blue-50 transition"
-								>
-									<span className="font-bold w-16">{day.date}</span>
-									<div className="flex items-center gap-2 flex-1 justify-center">
-										<span className="text-sm text-slate-500">
-											{day.condition}
+							{daily.length > 0 ? (
+								daily.map((day, index) => (
+									<div
+										key={index}
+										className="flex justify-between items-center p-4 bg-slate-50 rounded-lg hover:bg-blue-50 transition"
+									>
+										<span className="font-bold w-24 text-slate-600 text-sm sm:text-base">
+											{new Date(day.dt * 1000).toLocaleDateString('pl-PL', {
+												weekday: 'short',
+												day: 'numeric',
+												month: 'numeric',
+											})}
+										</span>
+
+										<div className="flex items-center gap-2 flex-1 justify-center">
+											<span className="text-sm text-slate-500 capitalize text-center">
+												{day.weather[0].description}
+											</span>
+										</div>
+
+										<span className="font-bold text-lg text-slate-700 min-w-12 text-right">
+											{Math.round(convertTemp(day.main.temp, unit))}°{unit}
 										</span>
 									</div>
-									<span className="font-bold text-lg">
-										{Math.round(convertTemp(day.temp, unit))}°{unit}
-									</span>
-								</div>
-							))}
+								))
+							) : (
+								<p className="text-center text-slate-400">
+									Brak danych prognozy pogody.
+								</p>
+							)}
 						</div>
 					)}
 				</div>

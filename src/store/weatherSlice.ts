@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
 	createSlice,
 	type PayloadAction,
 	createAsyncThunk,
 } from '@reduxjs/toolkit';
-import type { Unit, WeatherData } from '../types';
+import type { Unit, WeatherData, CityDetailsData } from '../types';
 import axiosClient from '../api/axiosClient';
 
 const DEFAULT_CITIES = ['Warszawa', 'Kraków', 'Wrocław', 'Gdańsk', 'Poznań'];
@@ -31,11 +32,35 @@ export const fetchWeatherByCity = createAsyncThunk(
 	}
 );
 
+export const fetchForecast = createAsyncThunk(
+	'weather/fetchForecast',
+	async (cityId: string, { rejectWithValue }) => {
+		try {
+			const response = await axiosClient.get('/forecast', {
+				params: { id: cityId },
+			});
+
+			const data = response.data;
+
+			return {
+				name: data.city.name,
+				current: data.list[0],
+				list: data.list,
+			} as CityDetailsData;
+		} catch (error: any) {
+			return rejectWithValue(
+				error.response?.data?.message || 'Błąd pobierania prognozy'
+			);
+		}
+	}
+);
+
 interface WeatherState {
 	unit: Unit;
 	favorites: number[];
 	cityList: WeatherData[];
 	savedCityNames: string[];
+	currentCityDetails: CityDetailsData | null;
 	status: 'idle' | 'loading' | 'succeeded' | 'failed';
 	error: string | null;
 }
@@ -74,6 +99,7 @@ const initialState: WeatherState = {
 	favorites: savedState.favorites,
 	savedCityNames: savedState.savedCityNames,
 	cityList: [],
+	currentCityDetails: null,
 	status: 'idle',
 	error: null,
 };
@@ -123,8 +149,22 @@ const weatherSlice = createSlice({
 				state.status = 'failed';
 				state.error = action.payload as string;
 			});
+
+		builder.addCase(fetchForecast.pending, (state) => {
+			state.status = 'loading';
+			state.error = null;
+			state.currentCityDetails = null;
+		});
+		builder.addCase(fetchForecast.fulfilled, (state, action) => {
+			state.status = 'succeeded';
+			state.currentCityDetails = action.payload;
+		});
+		builder.addCase(fetchForecast.rejected, (state, action) => {
+			state.status = 'failed';
+			state.error = action.payload as string;
+		});
 	},
 });
 
-export const { setUnit, toggleFavorite } = weatherSlice.actions;
+export const { setUnit, toggleFavorite, removeCity } = weatherSlice.actions;
 export default weatherSlice.reducer;
