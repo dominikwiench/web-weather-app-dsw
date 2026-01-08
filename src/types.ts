@@ -31,3 +31,15 @@ export interface FullForecast {
 	current: WeatherDetails;
 	daily: DailyForecast[];
 }
+
+export interface WeatherData {
+	id: number;
+	name: string;
+	temp: number;
+	condition: string;
+	icon: string;
+}
+
+export interface WeatherError {
+	message: string;
+}
