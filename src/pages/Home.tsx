@@ -78,6 +78,7 @@ const Home: React.FC = () => {
 									name={city.name}
 									temp={displayTemp}
 									condition={city.condition}
+									iconCode={city.icon}
 									isFavorite={isFav}
 									onToggleFavorite={(e) => {
 										e.preventDefault();

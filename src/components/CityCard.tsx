@@ -8,12 +8,14 @@ import {
 	WiSnow,
 	WiFog,
 	WiDayCloudy,
+	WiNightClear,
 } from 'react-icons/wi';
 
 interface CityCardProps {
 	name: string;
 	temp: number;
 	condition: string;
+	iconCode?: string;
 	isFavorite: boolean;
 	onToggleFavorite?: (e: React.MouseEvent) => void;
 }
@@ -22,17 +24,34 @@ const getWeatherIcon = (condition: string) => {
 	const iconProps = { size: 40, className: 'shrink-0' };
 
 	switch (condition.toLowerCase()) {
-		case 'słonecznie':
+		case '01d':
 			return <WiDaySunny {...iconProps} className="text-yellow-500" />;
-		case 'pochmurnie':
+		case '01n':
+			return <WiNightClear {...iconProps} className="text-slate-400" />;
+
+		case '02d':
+		case '02n':
+			return <WiDayCloudy {...iconProps} className="text-yellow-400" />;
+
+		case '03d':
+		case '03n':
+		case '04d':
+		case '04n':
 			return <WiCloudy {...iconProps} className="text-gray-400" />;
-		case 'deszczowo':
+
+		case '09d':
+		case '09n':
+		case '10d':
+		case '10n':
 			return <WiRain {...iconProps} className="text-blue-400" />;
-		case 'burzowo':
+		case '11d':
+		case '11n':
 			return <WiThunderstorm {...iconProps} className="text-purple-500" />;
-		case 'śnieżnie':
+		case '13d':
+		case '13n':
 			return <WiSnow {...iconProps} className="text-blue-200" />;
-		case 'mgła':
+		case '50d':
+		case '50n':
 			return <WiFog {...iconProps} className="text-gray-300" />;
 		default:
 			return <WiDayCloudy {...iconProps} className="text-yellow-500" />;
@@ -43,6 +62,7 @@ const CityCard: React.FC<CityCardProps> = ({
 	name,
 	temp,
 	condition,
+	iconCode,
 	isFavorite,
 	onToggleFavorite,
 }) => {
@@ -71,10 +91,10 @@ const CityCard: React.FC<CityCardProps> = ({
 
 				<div className="flex items-center gap-2 sm:gap-4 shrink-0 whitespace-nowrap">
 					<div className="hidden xs:block sm:block scale-90 sm:scale-100">
-						{getWeatherIcon(condition)}
+						{getWeatherIcon(iconCode || condition)}
 					</div>
 					<div className="block sm:hidden scale-75 -mr-2">
-						{getWeatherIcon(condition)}
+						{getWeatherIcon(iconCode || condition)}
 					</div>
 
 					<span className="text-3xl sm:text-4xl font-bold text-slate-700">
