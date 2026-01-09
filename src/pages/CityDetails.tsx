@@ -71,6 +71,12 @@ const CityDetails: React.FC = () => {
 	}
 
 	const current = currentCityDetails.current;
+	const forecastNow = currentCityDetails.list[0];
+	const precipChance = Math.round((forecastNow.pop || 0) * 100);
+	const rainVol =
+		(current.rain && current.rain['1h']) ||
+		(forecastNow.rain && forecastNow.rain['3h']) ||
+		0;
 	const daily = currentCityDetails.list.filter((item) =>
 		item.dt_txt.includes('12:00:00')
 	);
@@ -143,7 +149,7 @@ const CityDetails: React.FC = () => {
 							<DetailItem
 								icon={<WiRaindrop size={40} />}
 								label="Opady (3h)"
-								value={`${current.rain?.['3h'] || 0} mm`}
+								value={`${rainVol} mm`}
 							/>
 							<DetailItem
 								icon={<WiCloudy size={40} />}
@@ -153,7 +159,7 @@ const CityDetails: React.FC = () => {
 							<DetailItem
 								icon={<WiSandstorm size={40} className="text-blue-400" />}
 								label="Szansa na opady"
-								value={`${Math.round(current.pop * 100)}%`}
+								value={`${precipChance}%`}
 							/>
 						</div>
 					) : (

@@ -36,16 +36,27 @@ export const fetchForecast = createAsyncThunk(
 	'weather/fetchForecast',
 	async (cityId: string, { rejectWithValue }) => {
 		try {
-			const response = await axiosClient.get('/forecast', {
-				params: { id: cityId },
-			});
+			const [weatherRes, forecastRes] = await Promise.all([
+				axiosClient.get('/weather', { params: { id: cityId } }),
+				axiosClient.get('/forecast', { params: { id: cityId } }),
+			]);
 
-			const data = response.data;
+			const weatherData = weatherRes.data;
+			const forecastData = forecastRes.data;
 
 			return {
-				name: data.city.name,
-				current: data.list[0],
-				list: data.list,
+				name: weatherData.name,
+				current: {
+					dt: weatherData.dt,
+					dt_txt: new Date(weatherData.dt * 1000).toISOString(),
+					main: weatherData.main,
+					weather: weatherData.weather,
+					clouds: weatherData.clouds,
+					wind: weatherData.wind,
+					pop: 0,
+					rain: weatherData.rain,
+				},
+				list: forecastData.list,
 			} as CityDetailsData;
 		} catch (error: any) {
 			return rejectWithValue(
