@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
 import CityDetails from './pages/CityDetails';
+import Favorites from './pages/Favorites';
 
 function App() {
 	return (
@@ -12,6 +13,7 @@ function App() {
 				<main className="grow">
 					<Routes>
 						<Route path="/" element={<Home />} />
+						<Route path="/favorites" element={<Favorites />} />
 						<Route path="/city/:id" element={<CityDetails />} />
 						<Route path="*" element={<Navigate to="/" replace />} />
 					</Routes>

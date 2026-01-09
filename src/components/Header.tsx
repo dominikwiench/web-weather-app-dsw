@@ -3,6 +3,7 @@ import { WiDaySunny } from 'react-icons/wi';
 import type { Unit } from '../types';
 import { setUnit } from '../store/weatherSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
 	const dispatch = useAppDispatch();
@@ -17,12 +18,18 @@ const Header: React.FC = () => {
 				</div>
 
 				<nav className="flex gap-8 text-md">
-					<button className="hover:text-blue-200 font-semibold transition-colors">
+					<Link
+						to="/"
+						className="hover:text-blue-200 font-semibold transition-colors"
+					>
 						Pogoda
-					</button>
-					<button className="hover:text-blue-200 font-semibold transition-colors">
+					</Link>
+					<Link
+						to="/favorites"
+						className="hover:text-blue-200 font-semibold transition-colors flex items-center gap-1"
+					>
 						Ulubione miasta
-					</button>
+					</Link>
 				</nav>
 
 				<div className="flex bg-blue-800 rounded-lg overflow-hidden border border-blue-500">
