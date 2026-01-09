@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from 'react';
+import { useEffect, useReducer } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
 	WiStrongWind,
@@ -7,12 +7,61 @@ import {
 	WiRaindrop,
 	WiCloudy,
 	WiSandstorm,
+	WiDaySunny,
+	WiNightClear,
+	WiDayCloudy,
+	WiRain,
+	WiThunderstorm,
+	WiSnow,
+	WiFog,
 } from 'react-icons/wi';
 import { BiArrowBack, BiLoaderAlt } from 'react-icons/bi';
 
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { convertTemp } from '../utils/tempConverter';
 import { fetchForecast } from '../store/weatherSlice';
+
+// kod ikony z API na React Icon component
+const getWeatherIcon = (code: string, size: number = 40) => {
+	const iconProps = { size, className: 'shrink-0' };
+
+	switch (code) {
+		case '01d':
+			return <WiDaySunny {...iconProps} className="text-yellow-400" />;
+		case '01n':
+			return <WiNightClear {...iconProps} className="text-yellow-200" />;
+		case '02d':
+		case '02n':
+			return <WiDayCloudy {...iconProps} className="text-gray-200" />;
+		case '03d':
+		case '03n':
+		case '04d':
+		case '04n':
+			return <WiCloudy {...iconProps} className="text-gray-300" />;
+		case '09d':
+		case '09n':
+		case '10d':
+		case '10n':
+			return <WiRain {...iconProps} className="text-blue-300" />;
+		case '11d':
+		case '11n':
+			return <WiThunderstorm {...iconProps} className="text-purple-400" />;
+		case '13d':
+		case '13n':
+			return <WiSnow {...iconProps} className="text-gray-400" />;
+		case '50d':
+		case '50n':
+			return <WiFog {...iconProps} className="text-gray-400" />;
+		default:
+			return <WiDayCloudy {...iconProps} className="text-yellow-400" />;
+	}
+};
+
+const getWindDirection = (deg: number): string => {
+	const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+	const index = Math.round(((deg %= 360) < 0 ? deg + 360 : deg) / 45) % 8;
+	return directions[index];
+};
 
 type ViewState = 'today' | 'forecast';
 type ViewAction = { type: 'SHOW_TODAY' } | { type: 'SHOW_FORECAST' };
@@ -91,12 +140,19 @@ const CityDetails: React.FC = () => {
 			</button>
 
 			<div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-				<div className="bg-blue-600 p-8 text-white text-center">
+				<div className="bg-blue-600 p-8 text-white text-center flex flex-col items-center">
 					<h1 className="text-4xl font-bold mb-2">{currentCityDetails.name}</h1>
-					<p className="text-blue-100 text-lg capitalize">
-						{current.weather[0].description}
-					</p>
-					<div className="text-6xl font-bold my-4">
+
+					<div className="flex flex-col items-center justify-center my-2">
+						<div className="mb-2">
+							{getWeatherIcon(current.weather[0].icon, 80)}
+						</div>
+						<p className="text-blue-100 text-lg capitalize font-medium">
+							{current.weather[0].description}
+						</p>
+					</div>
+
+					<div className="text-6xl font-bold mb-4">
 						{Math.round(convertTemp(current.main.temp, unit))}°{unit}
 					</div>
 					<p className="text-sm opacity-80">
@@ -134,7 +190,9 @@ const CityDetails: React.FC = () => {
 							<DetailItem
 								icon={<WiStrongWind size={40} />}
 								label="Wiatr"
-								value={`${current.wind.speed} m/s`}
+								value={`${current.wind.speed} m/s ${getWindDirection(
+									current.wind.deg
+								)}`}
 							/>
 							<DetailItem
 								icon={<WiHumidity size={40} />}
@@ -149,7 +207,7 @@ const CityDetails: React.FC = () => {
 							<DetailItem
 								icon={<WiRaindrop size={40} />}
 								label="Opady (3h)"
-								value={`${rainVol} mm`}
+								value={`${rainVol} mm/m²`}
 							/>
 							<DetailItem
 								icon={<WiCloudy size={40} />}
@@ -179,6 +237,9 @@ const CityDetails: React.FC = () => {
 										</span>
 
 										<div className="flex items-center gap-2 flex-1 justify-center">
+											<div className="text-slate-400">
+												{getWeatherIcon(day.weather[0].icon, 30)}
+											</div>
 											<span className="text-sm text-slate-500 capitalize text-center">
 												{day.weather[0].description}
 											</span>
